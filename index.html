@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Whack-a-Mole: Uu–Zz (2 Players)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Noto+Sans+TC:wght@500;700;900&display=swap');
+
+  * {
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  body {
+    margin: 0;
+    padding: 8px 12px;
+    font-family: 'Fredoka', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+    background: linear-gradient(180deg, #b8e8ff 0%, #e5f7dc 35%, #c7ebae 100%);
+    color: #24452d;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .top-bar {
+    width: 100%;
+    background: #ffffff;
+    border: 3px solid #8cc673;
+    border-radius: 16px;
+    padding: 6px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    box-shadow: 0 4px 0 #7bb263;
+  }
+
+  .title-block {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .title-block h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #287b39;
+    line-height: 1.1;
+  }
+
+  .title-block .subtitle {
+    font-size: 14px;
+    color: #557a5d;
+    font-weight: 700;
+  }
+
+  .timer-box {
+    background: #fff4d5;
+    border: 3px solid #f4b844;
+    border-radius: 12px;
+    padding: 3px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .timer-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #b46b08;
+  }
+
+  .timer-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #d9531e;
+    line-height: 1;
+  }
+
+  .timer-value.urgent {
+    animation: pulseUrgent 0.6s infinite alternate;
+  }
+
+  @keyframes pulseUrgent {
+    from { transform: scale(1); color: #d9531e; }
+    to { transform: scale(1.12); color: #ff1e1e; }
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .time-selector {
+    display: inline-flex;
+    background: #eef7e8;
+    border: 2px solid #8cc673;
+    border-radius: 12px;
+    padding: 2px;
+    gap: 2px;
+  }
+
+  button.time-btn {
+    border: none;
+    border-radius: 9px;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    background: transparent;
+    color: #24452d;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  button.time-btn.active {
+    background: #287b39;
+    color: #ffffff;
+    box-shadow: 0 2px 0 #185224;
+  }
+
+  button.control {
+    border: none;
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    background: #328b43;
+    color: white;
+    box-shadow: 0 4px 0 #21632e;
+    transition: transform 0.1s;
+  }
+
+  button.control:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 #21632e;
+  }
+
+  button.control.secondary {
+    background: #f39c12;
+    box-shadow: 0 4px 0 #b9770e;
+  }
+
+  button.control.sound-btn {
+    background: #4a90e2;
+    box-shadow: 0 4px 0 #2c65a8;
+  }
+
+  button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .arena {
+    width: 100%;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    min-height: 0;
+  }
+
+  .player-zone {
+    background: rgba(255, 255, 255, 0.94);
+    border-radius: 22px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .player-zone.p1 {
+    border: 4px solid #3b82f6;
+    box-shadow: 0 6px 0 #2563eb;
+  }
+
+  .player-zone.p2 {
+    border: 4px solid #ef4444;
+    box-shadow: 0 6px 0 #dc2626;
+  }
+
+  .player-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 14px;
+    border-radius: 14px;
+  }
+
+  .p1 .player-header {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .p2 .player-header {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .player-title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .score-pill {
+    background: white;
+    padding: 2px 16px;
+    border-radius: 999px;
+    font-size: 24px;
+    font-weight: 700;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  /* Extra-Large Picture-Only Prompt Card */
+  .target-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fffbeb;
+    border: 4px solid #fcd34d;
+    border-radius: 22px;
+    padding: 10px 22px;
+    width: 100%;
+    max-width: 420px;
+    height: 225px;
+    box-shadow: 0 5px 0 #f59e0b;
+  }
+
+  .target-visual {
+    width: 205px;
+    height: 205px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .target-visual img,
+  .target-visual svg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border-radius: 14px;
+  }
+
+  .feedback-banner {
+    height: 24px;
+    font-size: 17px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lawn {
+    width: 100%;
+    flex: 1;
+    background: linear-gradient(180deg, #86cf63 0%, #6ab849 100%);
+    border: 3px solid #539b35;
+    border-radius: 18px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+    min-height: 290px;
+  }
+
+  .hole-slot {
+    position: relative;
+    min-height: 145px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 16px;
+  }
+
+  .mole-wrapper {
+    position: relative;
+    width: 160px;
+    height: 174px;
+    transform: translateY(122%);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .hole-slot.up .mole-wrapper {
+    transform: translateY(10px);
+  }
+
+  .hole-slot.hit-correct .mole-wrapper {
+    transform: translateY(2px) scale(1.06);
+  }
+
+  .hole-slot.hit-wrong .mole-wrapper {
+    animation: shakeWrong 0.35s ease;
+  }
+
+  @keyframes shakeWrong {
+    0%, 100% { transform: translateY(10px) translateX(0); }
+    25% { transform: translateY(10px) translateX(-9px); }
+    50% { transform: translateY(10px) translateX(9px); }
+    75% { transform: translateY(10px) translateX(-7px); }
+  }
+
+  .wood-sign {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 112px;
+    height: 74px;
+    background: linear-gradient(180deg, #f7cc88 0%, #d89648 100%);
+    border: 4px solid #784212;
+    border-radius: 14px;
+    box-shadow: 0 5px 0 #5c310c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 52px;
+    font-weight: 900;
+    color: #2b1402;
+    z-index: 4;
+    line-height: 1;
+  }
+
+  .wood-sign::before,
+  .wood-sign::after {
+    content: "";
+    position: absolute;
+    top: 7px;
+    width: 7px;
+    height: 7px;
+    background: #5c310c;
+    border-radius: 50%;
+  }
+  .wood-sign::before { left: 8px; }
+  .wood-sign::after { right: 8px; }
+
+  .hole-slot.hit-correct .wood-sign {
+    background: linear-gradient(180deg, #fef08a 0%, #facc15 100%);
+    border-color: #15803d;
+    color: #14532d;
+  }
+
+  .hole-slot.hit-wrong .wood-sign {
+    background: linear-gradient(180deg, #fecaca 0%, #f87171 100%);
+    border-color: #991b1b;
+    color: #7f1d1d;
+  }
+
+  .dirt-back {
+    position: absolute;
+    bottom: 8px;
+    width: 148px;
+    height: 36px;
+    background: #3d2210;
+    border-radius: 50%;
+    z-index: 1;
+  }
+
+  .dirt-front {
+    position: absolute;
+    bottom: 0;
+    width: 160px;
+    height: 28px;
+    background: linear-gradient(180deg, #8c5327 0%, #633716 100%);
+    border-radius: 50% 50% 40% 40%;
+    border-top: 3px solid #a86834;
+    z-index: 5;
+  }
+
+  .hit-spark {
+    position: absolute;
+    top: 8px;
+    font-size: 30px;
+    font-weight: 700;
+    z-index: 6;
+    pointer-events: none;
+    animation: floatUp 0.55s ease-out forwards;
+  }
+
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0) scale(0.75); }
+    100% { opacity: 0; transform: translateY(-32px) scale(1.25); }
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 42, 26, 0.72);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 16px;
+  }
+
+  .overlay.show {
+    display: flex;
+  }
+
+  .modal {
+    background: white;
+    border: 5px solid #f59e0b;
+    border-radius: 28px;
+    padding: 28px 34px;
+    max-width: 460px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 12px 0 #b45309;
+    animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .modal-trophy {
+    font-size: 68px;
+    margin-bottom: 6px;
+  }
+
+  .modal-winner {
+    font-size: 32px;
+    font-weight: 700;
+    color: #287b39;
+    margin: 4px 0 12px;
+  }
+
+  .modal-scores {
+    display: flex;
+    justify-content: space-around;
+    background: #f3f4f6;
+    border-radius: 16px;
+    padding: 12px;
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  @media (max-width: 900px) {
+    body {
+      min-height: auto;
+    }
+    .arena {
+      grid-template-columns: 1fr;
+    }
+    .target-card {
+      max-width: 340px;
+      height: 175px;
+    }
+    .target-visual {
+      width: 155px;
+      height: 155px;
+    }
+    .mole-wrapper {
+      width: 134px;
+      height: 148px;
+    }
+    .wood-sign {
+      width: 94px;
+      height: 62px;
+      font-size: 42px;
+      bottom: 16px;
+    }
+    .dirt-back {
+      width: 124px;
+      height: 32px;
+    }
+    .dirt-front {
+      width: 134px;
+      height: 24px;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="title-block">
+      <h1>🔨 WHACK-A-MOLE: Uu–Zz 🐹</h1>
+      <div class="subtitle">2-Player Simultaneous Phonics Battle</div>
+    </div>
+
+    <div class="timer-box">
+      <div class="timer-label">Time Left</div>
+      <div class="timer-value" id="timer">1:00</div>
+    </div>
+
+    <div class="controls">
+      <div class="time-selector" role="group" aria-label="Choose game time">
+        <button type="button" class="time-btn" id="btn30s" onclick="setDuration(30)">30s</button>
+        <button type="button" class="time-btn active" id="btn60s" onclick="setDuration(60)">1 MIN</button>
+      </div>
+      <button type="button" class="control" id="startBtn" onclick="startGame()">▶ START</button>
+      <button type="button" class="control secondary" onclick="resetGame()">↻ RESET</button>
+      <button type="button" class="control sound-btn" id="soundBtn" onclick="toggleSound()">🔊 SOUND ON</button>
+    </div>
+  </div>
+
+  <div class="arena">
+    <div class="player-zone p1" id="zone1">
+      <div class="player-header">
+        <span class="player-title">🔵 PLAYER 1</span>
+        <span class="score-pill" id="score1">0</span>
+      </div>
+
+      <div class="target-card">
+        <div class="target-visual" id="pic1"></div>
+      </div>
+
+      <div class="feedback-banner" id="msg1">Press START to play!</div>
+      <div class="lawn" id="board1"></div>
+    </div>
+
+    <div class="player-zone p2" id="zone2">
+      <div class="player-header">
+        <span class="player-title">🔴 PLAYER 2</span>
+        <span class="score-pill" id="score2">0</span>
+      </div>
+
+      <div class="target-card">
+        <div class="target-visual" id="pic2"></div>
+      </div>
+
+      <div class="feedback-banner" id="msg2">Press START to play!</div>
+      <div class="lawn" id="board2"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="gameOverOverlay">
+    <div class="modal">
+      <div class="modal-trophy">🏆</div>
+      <div class="modal-winner" id="winnerText">🔵 PLAYER 1 WINS!</div>
+      <div class="modal-scores">
+        <div style="color:#1d4ed8;">🔵 P1: <span id="finalScore1">0</span></div>
+        <div style="color:#b91c1c;">🔴 P2: <span id="finalScore2">0</span></div>
+      </div>
+      <button type="button" class="control" style="font-size:20px; padding:14px 28px;" onclick="resetGame(); startGame();">
+        ▶ PLAY AGAIN
+      </button>
+    </div>
+  </div>
+
+<script>
+// Uses the image URLs you provided first, and automatically falls back to the SVG
+// if an external host blocks loading in your browser.
+const VOCAB = [
+  {
+    key: "up",
+    letter: "U",
+    imageUrl: "https://img.magnific.com/premium-vector/guy-goes-up-vector-illustration-flat-style_362838-328.jpg",
+    svg: `<svg viewBox="0 0 120 120"><path d="M 10 105 L 35 105 L 35 84 L 58 84 L 58 63 L 81 63 L 81 42 L 108 42 L 108 112 L 10 112 Z" fill="#93c5fd" stroke="#1e3a8a" stroke-width="3" stroke-linejoin="round"/><circle cx="52" cy="34" r="10" fill="#fde68a" stroke="#78350f" stroke-width="2.5"/><path d="M 44 29 Q 52 20 61 29" fill="#451a03"/><path d="M 52 44 L 52 64 L 40 80 M 52 64 L 65 76 M 52 50 L 38 42 M 52 50 L 67 43" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M 94 32 L 94 10 M 85 18 L 94 9 L 103 18" stroke="#16a34a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`
+  },
+  {
+    key: "umbrella",
+    letter: "U",
+    imageUrl: "https://img.magnific.com/premium-vector/umbrella-cartoon-vector-illustration-cute-umbrella-cartoon-drawing-playful-rainy-day-design_648083-661.jpg?semt=ais_hybrid&w=740&q=80",
+    svg: `<svg viewBox="0 0 120 120"><path d="M 60 44 L 60 94 Q 60 106 48 106 Q 38 106 38 97" fill="none" stroke="#78350f" stroke-width="6" stroke-linecap="round"/><path d="M 14 54 Q 14 20 60 20 Q 106 20 106 54 Q 88 46 73 54 Q 60 45 47 54 Q 32 46 14 54 Z" fill="#ef4444" stroke="#7f1d1d" stroke-width="3" stroke-linejoin="round"/><path d="M 38 52 Q 44 24 60 20 Q 76 24 82 52" fill="#f87171" opacity="0.45"/></svg>`
+  },
+  {
+    key: "vest",
+    letter: "V",
+    imageUrl: "https://thumbs.dreamstime.com/b/vibrant-yellow-safety-vest-depicted-cartoon-style-vest-features-reflective-gray-stripes-two-simple-rectangular-394890987.jpg",
+    svg: `<svg viewBox="0 0 120 120"><path d="M 38 18 L 50 18 Q 60 32 70 18 L 82 18 L 94 42 L 88 104 L 32 104 L 26 42 Z" fill="#facc15" stroke="#854d0e" stroke-width="3.5" stroke-linejoin="round"/><rect x="31" y="72" width="58" height="10" fill="#e2e8f0" stroke="#475569" stroke-width="2"/><line x1="45" y1="22" x2="45" y2="104" stroke="#f59e0b" stroke-width="3"/><line x1="75" y1="22" x2="75" y2="104" stroke="#f59e0b" stroke-width="3"/></svg>`
+  },
+  {
+    key: "van",
+    letter: "V",
+    imageUrl: "https://img.magnific.com/premium-vector/isolated-cartoon-transportation-vehicle-retro-van-motion_1263357-22873.jpg?semt=ais_hybrid&w=740&q=80",
+    svg: `<svg viewBox="0 0 120 120"><path d="M 14 44 Q 14 34 26 34 L 78 34 Q 88 34 94 46 L 106 60 L 106 86 L 14 86 Z" fill="#38bdf8" stroke="#0c4a6e" stroke-width="3.5" stroke-linejoin="round"/><rect x="24" y="42" width="22" height="18" rx="4" fill="#e0f2fe" stroke="#0c4a6e" stroke-width="2.5"/><rect x="52" y="42" width="22" height="18" rx="4" fill="#e0f2fe" stroke="#0c4a6e" stroke-width="2.5"/><path d="M 80 42 L 90 42 L 98 58 L 80 58 Z" fill="#e0f2fe" stroke="#0c4a6e" stroke-width="2.5"/><circle cx="34" cy="88" r="13" fill="#334155" stroke="#0f172a" stroke-width="3"/><circle cx="34" cy="88" r="5" fill="#cbd5e1"/><circle cx="88" cy="88" r="13" fill="#334155" stroke="#0f172a" stroke-width="3"/><circle cx="88" cy="88" r="5" fill="#cbd5e1"/></svg>`
+  },
+  {
+    key: "watch",
+    letter: "W",
+    imageUrl: "https://img.magnific.com/premium-vector/cartoon-style-classic-mens-wrist-watch-vector-illustration_939711-3049.jpg?semt=ais_hybrid&w=740&q=80",
+    svg: `<svg viewBox="0 0 120 120"><rect x="44" y="10" width="32" height="26" rx="5" fill="#7c3aed" stroke="#4c1d95" stroke-width="3"/><rect x="44" y="84" width="32" height="26" rx="5" fill="#7c3aed" stroke="#4c1d95" stroke-width="3"/><circle cx="60" cy="60" r="28" fill="#fef08a" stroke="#4c1d95" stroke-width="4"/><circle cx="60" cy="60" r="22" fill="#ffffff" stroke="#d97706" stroke-width="2"/><line x1="60" y1="60" x2="60" y2="44" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round"/><line x1="60" y1="60" x2="73" y2="66" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="60" r="3" fill="#1e293b"/></svg>`
+  },
+  {
+    key: "window",
+    letter: "W",
+    imageUrl: "https://t3.ftcdn.net/jpg/02/80/29/04/360_F_280290474_106r9O1ikVUOfbogBPsPvKcaYW93felX.jpg",
+    svg: `<svg viewBox="0 0 120 120"><rect x="22" y="18" width="76" height="84" rx="6" fill="#bae6fd" stroke="#78350f" stroke-width="5"/><circle cx="76" cy="40" r="10" fill="#fde047"/><line x1="60" y1="18" x2="60" y2="102" stroke="#78350f" stroke-width="4"/><line x1="22" y1="60" x2="98" y2="60" stroke="#78350f" stroke-width="4"/><rect x="16" y="100" width="88" height="8" rx="3" fill="#b45309" stroke="#78350f" stroke-width="2.5"/></svg>`
+  },
+  {
+    key: "fox",
+    letter: "X",
+    imageUrl: "https://t3.ftcdn.net/jpg/08/06/84/94/360_F_806849416_oDzSKaOuagcQV8zaB8wVgwdVv7V6xFFS.jpg",
+    svg: `<svg viewBox="0 0 120 120"><polygon points="24,52 32,16 52,40" fill="#ea580c" stroke="#7c2d12" stroke-width="3" stroke-linejoin="round"/><polygon points="96,52 88,16 68,40" fill="#ea580c" stroke="#7c2d12" stroke-width="3" stroke-linejoin="round"/><polygon points="31,46 35,25 47,40" fill="#fed7aa"/><polygon points="89,46 85,25 73,40" fill="#fed7aa"/><ellipse cx="60" cy="64" rx="36" ry="30" fill="#f97316" stroke="#7c2d12" stroke-width="3"/><path d="M 25 66 Q 42 64 60 88 Q 78 64 95 66 Q 85 94 60 95 Q 35 94 25 66 Z" fill="#fff7ed"/><circle cx="46" cy="58" r="4.5" fill="#1c1917"/><circle cx="74" cy="58" r="4.5" fill="#1c1917"/><circle cx="47.5" cy="56.5" r="1.5" fill="#ffffff"/><circle cx="75.5" cy="56.5" r="1.5" fill="#ffffff"/><circle cx="60" cy="76" r="5" fill="#1c1917"/></svg>`
+  },
+  {
+    key: "box",
+    letter: "X",
+    imageUrl: "https://img.magnific.com/premium-vector/opened-cartoon-style-cardboard-box-isolated-illustration_1323048-64870.jpg",
+    svg: `<svg viewBox="0 0 120 120"><polygon points="20,42 60,24 100,42 100,88 60,106 20,88" fill="#d97706" stroke="#78350f" stroke-width="3.5" stroke-linejoin="round"/><polygon points="20,42 60,24 78,33 38,51" fill="#fbbf24" stroke="#78350f" stroke-width="3" stroke-linejoin="round"/><polygon points="100,42 60,24 42,33 82,51" fill="#f59e0b" stroke="#78350f" stroke-width="3" stroke-linejoin="round"/><line x1="60" y1="59" x2="60" y2="106" stroke="#78350f" stroke-width="3"/></svg>`
+  },
+  {
+    key: "yoyo",
+    letter: "Y",
+    imageUrl: "https://media.istockphoto.com/id/1070162990/vector/jojo.jpg?s=612x612&w=0&k=20&c=FzM19VWMLi_t3PYB2h3XpOk3hUdJBlDus3cqCCZMs4o=",
+    svg: `<svg viewBox="0 0 120 120"><path d="M 62 66 Q 82 54 76 34 Q 72 18 86 12" fill="none" stroke="#475569" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="68" r="30" fill="#ec4899" stroke="#831843" stroke-width="3.5"/><circle cx="60" cy="68" r="20" fill="#f472b6" stroke="#be185d" stroke-width="2.5"/><circle cx="60" cy="68" r="7" fill="#fef08a" stroke="#831843" stroke-width="2.5"/></svg>`
+  },
+  {
+    key: "yogurt",
+    letter: "Y",
+    imageUrl: "https://img.magnific.com/premium-vector/strawberry-yogurt-with-spoon-inside-white-background_61747-103.jpg?semt=ais_hybrid&w=740&q=80",
+    svg: `<svg viewBox="0 0 120 120"><polygon points="28,44 92,44 82,102 38,102" fill="#ffffff" stroke="#0284c7" stroke-width="3.5" stroke-linejoin="round"/><ellipse cx="60" cy="44" rx="34" ry="10" fill="#fef9c3" stroke="#0284c7" stroke-width="3"/><ellipse cx="66" cy="41" rx="9" ry="5.5" fill="#f43f5e" stroke="#9f1239" stroke-width="2"/><line x1="42" y1="42" x2="26" y2="20" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/><ellipse cx="24" cy="18" rx="7" ry="4" transform="rotate(-35 24 18)" fill="#cbd5e1" stroke="#475569" stroke-width="2"/></svg>`
+  },
+  {
+    key: "zebra",
+    letter: "Z",
+    imageUrl: "https://heyclipart.com/cdn/shop/files/6-realistic-zebra-vector-cartoon-illustration-59.jpg?v=1729767716&width=1445",
+    svg: `<svg viewBox="0 0 120 120"><ellipse cx="38" cy="24" rx="6" ry="12" transform="rotate(-15 38 24)" fill="#f8fafc" stroke="#1e293b" stroke-width="3"/><ellipse cx="78" cy="24" rx="6" ry="12" transform="rotate(15 78 24)" fill="#f8fafc" stroke="#1e293b" stroke-width="3"/><path d="M 52 24 L 64 24 L 64 56 L 52 56 Z" fill="#1e293b"/><rect x="34" y="32" width="48" height="68" rx="20" fill="#ffffff" stroke="#1e293b" stroke-width="3.5"/><path d="M 35 46 L 52 50 M 81 46 L 64 50 M 35 64 L 54 68 M 81 64 L 64 68 M 36 82 L 54 85 M 80 82 L 64 85" stroke="#1e293b" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="46" r="4" fill="#1e293b"/><circle cx="68" cy="46" r="4" fill="#1e293b"/><ellipse cx="58" cy="78" rx="18" ry="11" fill="#e2e8f0" stroke="#1e293b" stroke-width="2.5"/><circle cx="52" cy="77" r="2.5" fill="#1e293b"/><circle cx="64" cy="77" r="2.5" fill="#1e293b"/></svg>`
+  },
+  {
+    key: "zoo",
+    letter: "Z",
+    imageUrl: "https://png.pngtree.com/png-clipart/20240907/original/pngtree-zoo-entrance-outdoor-view-with-different-cartoon-animals-png-image_15954494.png",
+    svg: `<svg viewBox="0 0 120 120"><path d="M 18 102 L 18 46 Q 18 18 60 18 Q 102 18 102 46 L 102 102" fill="none" stroke="#854d0e" stroke-width="8" stroke-linecap="round"/><path d="M 18 46 Q 18 18 60 18 Q 102 18 102 46" fill="none" stroke="#16a34a" stroke-width="5"/><circle cx="60" cy="68" r="22" fill="#d97706" stroke="#78350f" stroke-width="3"/><circle cx="60" cy="68" r="15" fill="#fcd34d"/><circle cx="54" cy="65" r="3" fill="#1c1917"/><circle cx="66" cy="65" r="3" fill="#1c1917"/><polygon points="57,71 63,71 60,75" fill="#be185d"/><rect x="10" y="98" width="100" height="8" rx="4" fill="#4ade80" stroke="#15803d" stroke-width="2"/></svg>`
+  }
+];
+
+const ALL_LETTERS = ["U", "V", "W", "X", "Y", "Z"];
+
+let selectedDuration = 60;
+let playing = false;
+let timeLeft = 60;
+let timerInterval = null;
+let roamInterval = null;
+let soundEnabled = true;
+let audioCtx = null;
+
+const players = [
+  { id: 1, score: 0, current: null, useUppercase: true, locked: false, hatColor: "#2563eb", brimColor: "#1d4ed8", holes: [] },
+  { id: 2, score: 0, current: null, useUppercase: false, locked: false, hatColor: "#dc2626", brimColor: "#b91c1c", holes: [] }
+];
+
+function setDuration(seconds) {
+  if (playing) return;
+  selectedDuration = seconds;
+  timeLeft = seconds;
+  document.getElementById("btn30s").classList.toggle("active", seconds === 30);
+  document.getElementById("btn60s").classList.toggle("active", seconds === 60);
+  updateTimerDisplay();
+}
+
+function renderItemVisual(container, item) {
+  container.innerHTML = item.svg;
+  if (item.imageUrl && item.imageUrl.trim() !== "") {
+    const img = document.createElement("img");
+    img.src = item.imageUrl;
+    img.alt = item.key;
+    img.onload = () => {
+      container.innerHTML = "";
+      container.appendChild(img);
+    };
+  }
+}
+
+function playTone(type) {
+  if (!soundEnabled) return;
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume();
+
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === "hit") {
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.14);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+      osc.start(now);
+      osc.stop(now + 0.16);
+    } else if (type === "miss") {
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(190, now);
+      osc.frequency.linearRampToValueAtTime(130, now + 0.18);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    } else if (type === "end") {
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.setValueAtTime(554, now + 0.12);
+      osc.frequency.setValueAtTime(659, now + 0.24);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+      osc.start(now);
+      osc.stop(now + 0.5);
+    }
+  } catch (e) {}
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById("soundBtn").textContent = soundEnabled ? "🔊 SOUND ON" : "🔇 SOUND OFF";
+}
+
+function createMoleHTML(hatColor, brimColor) {
+  return `
+    <div class="dirt-back"></div>
+    <div class="mole-wrapper">
+      <svg viewBox="0 0 120 130" width="100%" height="130">
+        <ellipse cx="60" cy="82" rx="36" ry="44" fill="#7c5233" stroke="#4a2e19" stroke-width="3"/>
+        <ellipse cx="60" cy="88" rx="22" ry="26" fill="#b0825c"/>
+        <path d="M 34 40 Q 60 16 86 40 Z" fill="${hatColor}" stroke="#222" stroke-width="2.5"/>
+        <ellipse cx="60" cy="40" rx="30" ry="5" fill="${brimColor}" stroke="#222" stroke-width="2"/>
+        <circle cx="47" cy="54" r="4.5" fill="#1f1f1f"/>
+        <circle cx="73" cy="54" r="4.5" fill="#1f1f1f"/>
+        <circle cx="48.5" cy="52.5" r="1.5" fill="#ffffff"/>
+        <circle cx="74.5" cy="52.5" r="1.5" fill="#ffffff"/>
+        <ellipse cx="60" cy="63" rx="8" ry="5.5" fill="#f472b6" stroke="#831843" stroke-width="1.5"/>
+        <line x1="30" y1="62" x2="44" y2="64" stroke="#4a2e19" stroke-width="2" stroke-linecap="round"/>
+        <line x1="90" y1="62" x2="76" y2="64" stroke="#4a2e19" stroke-width="2" stroke-linecap="round"/>
+        <ellipse cx="22" cy="92" rx="9" ry="7" fill="#d4a373" stroke="#4a2e19" stroke-width="2.5"/>
+        <ellipse cx="98" cy="92" rx="9" ry="7" fill="#d4a373" stroke="#4a2e19" stroke-width="2.5"/>
+      </svg>
+      <div class="wood-sign">U</div>
+    </div>
+    <div class="dirt-front"></div>
+  `;
+}
+
+function buildBoards() {
+  players.forEach((p, pIndex) => {
+    const board = document.getElementById(`board${p.id}`);
+    board.innerHTML = "";
+    p.holes = [];
+
+    for (let i = 0; i < 6; i++) {
+      const slot = document.createElement("div");
+      slot.className = "hole-slot";
+      slot.innerHTML = createMoleHTML(p.hatColor, p.brimColor);
+
+      slot.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        handleWhack(pIndex, i);
+      });
+
+      board.appendChild(slot);
+      p.holes.push(slot);
+    }
+  });
+}
+
+function shuffle(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function formatSingleCaseLetter(upperLetter, isUppercase) {
+  return isUppercase ? upperLetter.toUpperCase() : upperLetter.toLowerCase();
+}
+
+function applyPopVisibility(p) {
+  const targetIdx = p.holes.findIndex((h) => h.dataset.letter === p.current.letter);
+  const indices = shuffle([0, 1, 2, 3, 4, 5]);
+  const visibleCount = 3 + Math.floor(Math.random() * 2);
+  const visibleSet = new Set();
+
+  if (targetIdx !== -1) visibleSet.add(targetIdx);
+  for (const idx of indices) {
+    if (visibleSet.size >= visibleCount) break;
+    visibleSet.add(idx);
+  }
+
+  p.holes.forEach((slot, idx) => {
+    if (slot.classList.contains("hit-correct") || slot.dataset.hit === "true") return;
+    if (visibleSet.has(idx)) {
+      slot.classList.add("up");
+    } else {
+      slot.classList.remove("up");
+    }
+  });
+}
+
+function nextRoundForPlayer(pIndex) {
+  const p = players[pIndex];
+  p.locked = false;
+
+  let nextItem;
+  do {
+    nextItem = VOCAB[Math.floor(Math.random() * VOCAB.length)];
+  } while (p.current && nextItem.key === p.current.key);
+
+  p.current = nextItem;
+  // Each round independently picks big (uppercase) or small (lowercase) so both teams see both
+  p.useUppercase = Math.random() < 0.5;
+
+  renderItemVisual(document.getElementById(`pic${p.id}`), nextItem);
+
+  const shuffledLetters = shuffle(ALL_LETTERS);
+
+  p.holes.forEach((slot, idx) => {
+    const upperLetter = shuffledLetters[idx];
+    slot.dataset.letter = upperLetter;
+    slot.dataset.hit = "false";
+    slot.classList.remove("up", "hit-correct", "hit-wrong");
+    slot.querySelector(".wood-sign").textContent = formatSingleCaseLetter(upperLetter, p.useUppercase);
+  });
+
+  setTimeout(() => {
+    if (playing) applyPopVisibility(p);
+  }, 80);
+}
+
+function spawnSpark(slot, text, color) {
+  const spark = document.createElement("div");
+  spark.className = "hit-spark";
+  spark.textContent = text;
+  spark.style.color = color;
+  slot.appendChild(spark);
+  setTimeout(() => spark.remove(), 550);
+}
+
+function handleWhack(pIndex, holeIndex) {
+  if (!playing) return;
+  const p = players[pIndex];
+  if (p.locked) return;
+
+  const slot = p.holes[holeIndex];
+  if (!slot.classList.contains("up") || slot.dataset.hit === "true") return;
+
+  const chosenUpper = slot.dataset.letter;
+  const shownChar = formatSingleCaseLetter(chosenUpper, p.useUppercase);
+  const msgEl = document.getElementById(`msg${p.id}`);
+
+  if (chosenUpper === p.current.letter) {
+    p.locked = true;
+    p.score++;
+    document.getElementById(`score${p.id}`).textContent = p.score;
+    slot.classList.add("hit-correct");
+    msgEl.style.color = "#15803d";
+    msgEl.textContent = `🎉 Great job! "${shownChar}"`;
+    spawnSpark(slot, "+1 ⭐", "#16a34a");
+    playTone("hit");
+
+    setTimeout(() => {
+      if (playing) {
+        msgEl.style.color = "#92400e";
+        msgEl.textContent = "Tap the matching letter!";
+        nextRoundForPlayer(pIndex);
+      }
+    }, 340);
+  } else {
+    slot.dataset.hit = "true";
+    slot.classList.add("hit-wrong");
+    msgEl.style.color = "#dc2626";
+    msgEl.textContent = `❌ Not "${shownChar}"! Try again!`;
+    spawnSpark(slot, "Oops!", "#dc2626");
+    playTone("miss");
+
+    setTimeout(() => {
+      slot.classList.remove("up");
+    }, 320);
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  const timerEl = document.getElementById("timer");
+  timerEl.textContent = `${m}:${String(s).padStart(2, "0")}`;
+  if (timeLeft <= 10 && playing) {
+    timerEl.classList.add("urgent");
+  } else {
+    timerEl.classList.remove("urgent");
+  }
+}
+
+function startGame() {
+  if (playing) return;
+
+  document.getElementById("gameOverOverlay").classList.remove("show");
+  playing = true;
+  timeLeft = selectedDuration;
+  updateTimerDisplay();
+  document.getElementById("startBtn").disabled = true;
+  document.getElementById("btn30s").disabled = true;
+  document.getElementById("btn60s").disabled = true;
+
+  players.forEach((p, idx) => {
+    const msgEl = document.getElementById(`msg${p.id}`);
+    msgEl.style.color = "#92400e";
+    msgEl.textContent = "Tap the matching letter!";
+    nextRoundForPlayer(idx);
+  });
+
+  roamInterval = setInterval(() => {
+    if (!playing) return;
+    players.forEach((p) => {
+      if (!p.locked) applyPopVisibility(p);
+    });
+  }, 1500);
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+
+    if (timeLeft <= 0) {
+      endGame();
+    }
+  }, 1000);
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  clearInterval(roamInterval);
+  playing = false;
+  playTone("end");
+
+  players.forEach((p) => {
+    p.holes.forEach((slot) => slot.classList.remove("up"));
+  });
+
+  const s1 = players[0].score;
+  const s2 = players[1].score;
+
+  document.getElementById("finalScore1").textContent = s1;
+  document.getElementById("finalScore2").textContent = s2;
+
+  const winnerEl = document.getElementById("winnerText");
+  if (s1 > s2) {
+    winnerEl.textContent = "🔵 PLAYER 1 WINS!";
+    winnerEl.style.color = "#1d4ed8";
+  } else if (s2 > s1) {
+    winnerEl.textContent = "🔴 PLAYER 2 WINS!";
+    winnerEl.style.color = "#b91c1c";
+  } else {
+    winnerEl.textContent = "🤝 IT'S A TIE!";
+    winnerEl.style.color = "#287b39";
+  }
+
+  document.getElementById("gameOverOverlay").classList.add("show");
+  document.getElementById("startBtn").disabled = false;
+  document.getElementById("btn30s").disabled = false;
+  document.getElementById("btn60s").disabled = false;
+}
+
+function resetGame() {
+  clearInterval(timerInterval);
+  clearInterval(roamInterval);
+  playing = false;
+  timeLeft = selectedDuration;
+  updateTimerDisplay();
+
+  document.getElementById("gameOverOverlay").classList.remove("show");
+  document.getElementById("startBtn").disabled = false;
+  document.getElementById("btn30s").disabled = false;
+  document.getElementById("btn60s").disabled = false;
+
+  players.forEach((p) => {
+    p.score = 0;
+    p.locked = false;
+    p.current = null;
+    document.getElementById(`score${p.id}`).textContent = "0";
+    const msgEl = document.getElementById(`msg${p.id}`);
+    msgEl.style.color = "#24452d";
+    msgEl.textContent = "Press START to play!";
+    p.holes.forEach((slot, i) => {
+      slot.classList.remove("up", "hit-correct", "hit-wrong");
+      slot.querySelector(".wood-sign").textContent = ALL_LETTERS[i];
+    });
+  });
+
+  renderItemVisual(document.getElementById("pic1"), VOCAB[1]);
+  renderItemVisual(document.getElementById("pic2"), VOCAB[10]);
+}
+
+buildBoards();
+resetGame();
+</script>
+</body>
+</html>
